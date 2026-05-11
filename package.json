@@ -1,8 +1,12 @@
 {
-  "dependencies": {
-    "discord.js": "^14.11.0"
-  },
+  "name": "z-sora-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
   "scripts": {
     "start": "node index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.11.0"
   }
 }
