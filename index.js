@@ -1,20 +1,20 @@
 const { Client, GatewayIntentBits } = require('discord.js');
-const client = new Client({ 
+const client = new Client({
     intents: [
-        GatewayIntentBits.Guilds, 
-        GatewayIntentBits.GuildMessages, 
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent
-    ] 
+    ]
 });
 
 client.once('ready', () => {
-    console.log('Z-Sora Online! 🎸');
+    console.log(`Logged in as ${client.user.tag}!`);
 });
 
 client.on('messageCreate', message => {
-    if (message.content === 'สวัสดี') {
-        message.reply('สวัสดีครับ ผม Z-Sora บอทสุดเท่ของเธอมาแล้ว! 🎸🔥');
+    if (message.content === 'ping') {
+        message.reply('pong');
     }
 });
 
-client.login(client.login(process.env.TOKEN'');
+client.login(process.env.TOKEN);
