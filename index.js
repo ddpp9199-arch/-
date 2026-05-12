@@ -1,37 +1,3 @@
-const http = require('http');
-http.createServer((req, res) => { res.write("Z-Sora is Online!"); res.end(); }).listen(process.env.PORT || 8080);
-
-const { Client, GatewayIntentBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
-const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent,
-        GatewayIntentBits.GuildVoiceStates
-    ]
-});
-
-client.on('messageCreate', async message => {
-    // ใช้คำสั่ง !setup (ถ้าบอทตอบซ้ำ ให้ลองเปลี่ยนเป็นคำอื่นเช่น !start)
-    if (message.content === '!setup' && !message.author.bot) {
-        const embed = new EmbedBuilder()
-            .setColor('#FFFFFF')
-            .setTitle('ยินดีต้อนรับ สู่˖ ֹ੭୧ 𝐙𝐞𝐫𝐨𝐋𝐞𝐯𝐞𝐥 ⊹ ࣪ ⑅')
-            .setDescription('นี่คือ บอทสุ่มห้อง⊹ ࣪ ˖\n\n• ควรอยู่ห้องด้านล่างก่อน\n• เลือกปุ่มตามใจเรา\n• กดเลย\n\nบอทจะย้ายเราเข้าเองครับ ขอบคุณคับ\n\n↓↓')
-            // ใส่ลิงก์รูปที่เธอ Copy มาจาก Discord ตรงๆ ในนี้
-            .setImage('https://images-ext-1.discordapp.net/external/vL0_Zg-66yA-K-7WInaETo7h_LhNREpX2V2Z9V7R7_Y/https/raw.githubusercontent.com/ddpp9199-arch/-/main/1000016742.jpg'); 
-
-        const row = new ActionRowBuilder()
-            .addComponents(
-                new ButtonBuilder().setCustomId('move_filled').setLabel('ย้ายไปหาห้องที่มีคน').setStyle(ButtonStyle.Success),
-                new ButtonBuilder().setCustomId('move_empty').setLabel('ย้ายมาห้องที่ไม่มีคน').setStyle(ButtonStyle.Primary),
-                new ButtonBuilder().setCustomId('disconnect').setLabel('ออกห้อง').setStyle(ButtonStyle.Danger),
-            );
-
-        await message.channel.send({ embeds: [embed], components: [row] });
-    }
-});
-
 client.on('interactionCreate', async interaction => {
     if (!interaction.isButton()) return;
     const member = interaction.member;
@@ -44,24 +10,43 @@ client.on('interactionCreate', async interaction => {
     const allVoiceChannels = interaction.guild.channels.cache.filter(c => c.type === 2 && c.id !== voiceChannel?.id);
 
     try {
+        let responseMessage = "";
+
         if (interaction.customId === 'move_filled') {
             const filledChannels = allVoiceChannels.filter(c => c.members.size > 0);
-            if (filledChannels.size === 0) return interaction.reply({ content: 'ไม่มีใครอยู่ในห้องอื่นเลยเธอ!', ephemeral: true });
-            await member.voice.setChannel(filledChannels.random());
-            await interaction.reply({ content: 'ย้ายไปจอยกับคนอื่นแล้วนะ!', ephemeral: true });
+            if (filledChannels.size === 0) {
+                responseMessage = 'ไม่มีใครอยู่ในห้องอื่นเลยเธอ!';
+            } else {
+                await member.voice.setChannel(filledChannels.random());
+                responseMessage = 'ย้ายไปจอยกับคนอื่นแล้วนะ!';
+            }
         } else if (interaction.customId === 'move_empty') {
             const emptyChannels = allVoiceChannels.filter(c => c.members.size === 0);
-            if (emptyChannels.size === 0) return interaction.reply({ content: 'ห้องเต็มหมดแล้ว!', ephemeral: true });
-            await member.voice.setChannel(emptyChannels.random());
-            await interaction.reply({ content: 'ย้ายไปห้องว่างให้แล้วจ้า!', ephemeral: true });
+            if (emptyChannels.size === 0) {
+                responseMessage = 'ห้องเต็มหมดแล้ว!';
+            } else {
+                await member.voice.setChannel(emptyChannels.random());
+                responseMessage = 'ย้ายไปห้องว่างให้แล้วจ้า!';
+            }
         } else if (interaction.customId === 'disconnect') {
-            if (voiceChannel) await member.voice.disconnect();
-            await interaction.reply({ content: 'ออกจากห้องเรียบร้อย!', ephemeral: true });
+            if (voiceChannel) {
+                await member.voice.disconnect();
+                responseMessage = 'ออกจากห้องเรียบร้อย!';
+            } else {
+                responseMessage = 'เธอไม่ได้อยู่ในห้องเสียงนะ';
+            }
         }
+
+        // ส่งข้อความตอบกลับ
+        const msg = await interaction.reply({ content: responseMessage, fetchReply: true });
+        
+        // ตั้งเวลาลบข้อความภายใน 20 วินาที (20000 มิลลิวินาที)
+        setTimeout(() => {
+            interaction.deleteReply().catch(err => console.log("ลบไม่ทัน หรือข้อความหายไปแล้ว"));
+        }, 20000);
+
     } catch (e) { 
         console.error(e);
-        interaction.reply({ content: 'บอทไม่มีสิทธิ์ย้ายคนอ่ะเธอ! (ต้องมี Move Members)', ephemeral: true }); 
+        interaction.reply({ content: 'บอทไม่มีสิทธิ์ย้ายคนอ่ะเธอ!', ephemeral: true }); 
     }
 });
-
-client.login(process.env.TOKEN);
