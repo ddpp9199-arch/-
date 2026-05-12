@@ -1,3 +1,39 @@
+const http = require('http');
+http.createServer((req, res) => { res.write("Z-Sora is Online!"); res.end(); }).listen(process.env.PORT || 8080);
+
+const { Client, GatewayIntentBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildVoiceStates
+    ]
+});
+
+client.once('ready', () => {
+    console.log(`บอทสุ่มห้อง ${client.user.tag} พร้อมทำงาน!`);
+});
+
+client.on('messageCreate', async message => {
+    if (message.content === '!setup' && !message.author.bot) {
+        const embed = new EmbedBuilder()
+            .setColor('#FFFFFF')
+            .setTitle('ยินดีต้อนรับ สู่˖ ֹ੭୧ 𝐙𝐞𝐫𝐨𝐋𝐞𝐯𝐞𝐥 ⊹ ࣪ ⑅')
+            .setDescription('นี่คือ บอทสุ่มห้อง⊹ ࣪ ˖\n\n• ควรอยู่ห้องด้านล่างก่อน\n• เลือกปุ่มตามใจเรา\n• กดเลย\n\nบอทจะย้ายเราเข้าเองครับ ขอบคุณคับ\n\n↓↓')
+            .setImage('https://raw.githubusercontent.com/ddpp9199-arch/-/main/1000016742.jpg'); 
+
+        const row = new ActionRowBuilder()
+            .addComponents(
+                new ButtonBuilder().setCustomId('move_filled').setLabel('ย้ายไปหาห้องที่มีคน').setStyle(ButtonStyle.Success),
+                new ButtonBuilder().setCustomId('move_empty').setLabel('ย้ายมาห้องที่ไม่มีคน').setStyle(ButtonStyle.Primary),
+                new ButtonBuilder().setCustomId('disconnect').setLabel('ออกห้อง').setStyle(ButtonStyle.Danger),
+            );
+
+        await message.channel.send({ embeds: [embed], components: [row] });
+    }
+});
+
 client.on('interactionCreate', async interaction => {
     if (!interaction.isButton()) return;
     const member = interaction.member;
@@ -37,16 +73,20 @@ client.on('interactionCreate', async interaction => {
             }
         }
 
-        // ส่งข้อความตอบกลับ
+        // ตอบกลับแบบชั่วคราว (Ephemeral: true จะเห็นแค่คนกด และหายไปเองได้)
+        // หรือถ้าอยากให้คนอื่นเห็นด้วยแต่ลบเอง ก็ใช้โค้ดลบข้างล่างนี้ครับ
         const msg = await interaction.reply({ content: responseMessage, fetchReply: true });
         
-        // ตั้งเวลาลบข้อความภายใน 20 วินาที (20000 มิลลิวินาที)
         setTimeout(() => {
             interaction.deleteReply().catch(err => console.log("ลบไม่ทัน หรือข้อความหายไปแล้ว"));
         }, 20000);
 
     } catch (e) { 
         console.error(e);
-        interaction.reply({ content: 'บอทไม่มีสิทธิ์ย้ายคนอ่ะเธอ!', ephemeral: true }); 
+        if (!interaction.replied) {
+            interaction.reply({ content: 'บอทไม่มีสิทธิ์ย้ายคนอ่ะเธอ! เช็ก Role บอทด้วยนะ', ephemeral: true });
+        }
     }
 });
+
+client.login(process.env.TOKEN);
