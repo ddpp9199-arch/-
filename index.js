@@ -1,5 +1,4 @@
 const http = require('http');
-// สร้าง Server หลอกๆ เพื่อให้ Render เลิกบ่นเรื่อง Port
 http.createServer((req, res) => {
    res.write("Z-Sora is Online!");
    res.end();
@@ -19,8 +18,14 @@ client.once('ready', () => {
 });
 
 client.on('messageCreate', message => {
+    // 1. คำสั่งทดสอบระบบ
     if (message.content === 'ping') {
         message.reply('pong');
+    }
+
+    // 2. คำสั่งสวัสดี
+    if (message.content === 'สวัสดี') {
+        message.reply('สวัสดีครับเจ้าของ! ผม Z-Sora ออนไลน์พร้อมรับใช้แล้วครับ 🎸🔥');
     }
 });
 
